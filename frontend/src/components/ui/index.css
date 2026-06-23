@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  --canvas: #F1F2F0;
+  --canvas-edge: #E0E2DE;
+  --panel: #FFFFFF;
+  --panel-soft: #F6F7F4;
+  --panel-line: #D2D4D0;
+  --panel-divider: #E4E5E2;
+  --ink-1: #0A1022;
+  --ink-2: #1F2640;
+  --ink-3: #4E5468;
+  --ink-4: #757B8E;
+  --ink-5: #9A9FB0;
+  --chrome: #003B70;
+  --chrome-edge: #DA291C;
+  --chrome-on: #FFFFFF;
+  --chrome-soft: rgba(255,255,255,.65);
+  --chrome-mute: rgba(255,255,255,.16);
+  --accent: #003B70;
+  --accent-deep: #002850;
+  --accent-soft: #E3ECF5;
+  --accent-edge: #A8C0DC;
+  --accent-on: #FFFFFF;
+  --action: #DA291C;
+  --action-deep: #B41E12;
+  --action-soft: #FAE5E2;
+  --action-on: #FFFFFF;
+  --success-text: #1F6F3F;
+  --success-soft: #EDF6F0;
+  --success-edge: #9dcdb5;
+  --warn-text: #8A5300;
+  --warn-soft: #FBF1DF;
+  --danger-text: #DA291C;
+  --danger-soft: #FAE5E2;
+  --danger-edge: #E0A09B;
+  --focus-ring: rgba(0,59,112,.22);
+  --shadow-card: 0 1px 0 rgba(10,16,34,.04), 0 1px 2px rgba(10,16,34,.05);
+  --shadow-raise: 0 4px 12px rgba(10,16,34,.09);
+  --shadow-modal: 0 24px 60px rgba(10,16,34,.18);
+  --r-sm: 1px;
+  --r-md: 2px;
+  --r-lg: 2px;
+  --sans: 'Inter', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+  --density-input: 40px;
+  --sidebar-w: 52px;
+  --sidebar-expanded: 220px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-size: 16px; background: var(--canvas); }
+body {
+  font-family: var(--sans);
+  background: var(--canvas);
+  color: var(--ink-1);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+a { color: var(--accent); text-decoration: none; }
+.hidden { display: none !important; }
