@@ -12,7 +12,22 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
+export interface DropdownOption {
+  value_code: string;
+  display_name: string;
+}
+
+export interface CustomerAccount {
+  id: string;
+  account_number: string;
+  account_name: string;
+  currency: string;
+  available_limit: number;
+  account_type: string;
+}
+
 export const api = {
+  // LC CRUD
   createLC: () =>
     request<{ data: import('../types/lc').LCApplication }>('/lc', { method: 'POST' }),
 
@@ -51,6 +66,7 @@ export const api = {
   getMT700: (id: string) =>
     fetch(`${BASE}/lc/${id}/mt700`).then(r => r.text()),
 
+  // Lookups
   searchBIC: (q: string) =>
     request<{ data: import('../types/lc').BICRecord[] }>(`/lookup/bic?q=${encodeURIComponent(q)}`),
 
@@ -58,4 +74,10 @@ export const api = {
     request<{ data: import('../types/lc').BeneficiaryRecord[] }>(
       `/lookup/beneficiaries?q=${encodeURIComponent(q)}`
     ),
+
+  getDropdown: (key: string) =>
+    request<{ data: DropdownOption[] }>(`/lookup/dropdowns?key=${encodeURIComponent(key)}`),
+
+  getAccounts: (companyId = 'HUL') =>
+    request<{ data: CustomerAccount[] }>(`/lookup/accounts?company_id=${encodeURIComponent(companyId)}`),
 };

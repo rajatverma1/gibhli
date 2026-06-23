@@ -1,10 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { useLCStore } from '../store/lcStore';
 import { StepsBar } from '../components/layout/StepsBar';
 import { BICSearch } from '../components/form/BICSearch';
 import { BeneficiarySearch } from '../components/form/BeneficiarySearch';
+import { api } from '../api/client';
+import type { DropdownOption } from '../api/client';
 import type { LCApplication, BeneficiaryRecord } from '../types/lc';
 
 type Step1Data = NonNullable<LCApplication['step1']>;
@@ -48,6 +50,11 @@ export function Step1Page() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { currentLC, loadLC, saveStep1, isSaving } = useLCStore();
+  const [purposeOptions, setPurposeOptions] = useState<DropdownOption[]>([]);
+
+  useEffect(() => {
+    api.getDropdown('PURPOSE_OF_IMPORT').then(r => setPurposeOptions(r.data)).catch(() => {});
+  }, []);
 
   const { register, handleSubmit, control, watch, setValue, reset, formState: { errors } } = useForm<Step1Data>({
     defaultValues: DEFAULT,
@@ -89,6 +96,7 @@ export function Step1Page() {
       <StepsBar lc={currentLC} current={1} />
 
       <form onSubmit={handleSubmit(onSubmit)}>
+        {/* Applicant Details */}
         <div className="form-card">
           <div className="form-card-header">
             <h2 className="form-card-title">Applicant Details</h2>
@@ -153,17 +161,21 @@ export function Step1Page() {
               </div>
               <div className="field-group span-4">
                 <label className="field-label required">Purpose of Import</label>
-                <textarea
-                  className="field-input"
-                  rows={2}
+                <select
+                  className={`field-input${errors.applicant?.purposeOfImport ? ' error' : ''}`}
                   {...register('applicant.purposeOfImport', { required: true })}
-                  placeholder="Describe the purpose of this import…"
-                />
+                >
+                  <option value="">Select purpose…</option>
+                  {purposeOptions.map(o => (
+                    <option key={o.value_code} value={o.value_code}>{o.display_name}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Beneficiary Details */}
         <div className="form-card">
           <div className="form-card-header">
             <h2 className="form-card-title">Beneficiary Details</h2>
@@ -242,6 +254,7 @@ export function Step1Page() {
           </div>
         </div>
 
+        {/* Amount & Expiry */}
         <div className="form-card">
           <div className="form-card-header">
             <h2 className="form-card-title">LC Amount &amp; Expiry</h2>
@@ -293,6 +306,7 @@ export function Step1Page() {
           </div>
         </div>
 
+        {/* LC Rules */}
         <div className="form-card">
           <div className="form-card-header">
             <h2 className="form-card-title">LC Rules &amp; Conditions</h2>

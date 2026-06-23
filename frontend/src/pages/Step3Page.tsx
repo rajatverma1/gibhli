@@ -1,8 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useLCStore } from '../store/lcStore';
 import { StepsBar } from '../components/layout/StepsBar';
+import { api } from '../api/client';
+import type { DropdownOption, CustomerAccount } from '../api/client';
 import type { LCApplication } from '../types/lc';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -47,10 +49,23 @@ const DEFAULT: Step3Data = {
   declarations: DECLARATIONS,
 };
 
+function formatLimit(currency: string, limit: number) {
+  return `${currency} ${limit.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+}
+
 export function Step3Page() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { currentLC, loadLC, saveStep3, isSaving } = useLCStore();
+  const [accounts, setAccounts] = useState<CustomerAccount[]>([]);
+  const [chargesOptions, setChargesOptions] = useState<DropdownOption[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<DropdownOption[]>([]);
+
+  useEffect(() => {
+    api.getAccounts().then(r => setAccounts(r.data)).catch(() => {});
+    api.getDropdown('BANK_CHARGES_BY').then(r => setChargesOptions(r.data)).catch(() => {});
+    api.getDropdown('PAYMENT_METHOD').then(r => setPaymentMethods(r.data)).catch(() => {});
+  }, []);
 
   const { register, handleSubmit, watch, reset } = useForm<Step3Data>({
     defaultValues: DEFAULT,
@@ -84,6 +99,7 @@ export function Step3Page() {
       <StepsBar lc={currentLC} current={3} />
 
       <form onSubmit={handleSubmit(onSubmit)}>
+        {/* Payment Terms */}
         <div className="form-card">
           <div className="form-card-header">
             <h2 className="form-card-title">Payment Terms</h2>
@@ -93,11 +109,20 @@ export function Step3Page() {
               <div className="field-group span-2">
                 <label className="field-label required">Method of Payment</label>
                 <select className="field-input" {...register('paymentTerms.methodOfPayment')}>
-                  <option value="SIGHT">Sight</option>
-                  <option value="USANCE">Usance</option>
-                  <option value="DEFERRED">Deferred Payment</option>
-                  <option value="NEGOTIATION">Negotiation</option>
-                  <option value="MIXED">Mixed Payment</option>
+                  {paymentMethods.length > 0
+                    ? paymentMethods.map(o => (
+                        <option key={o.value_code} value={o.value_code}>{o.display_name}</option>
+                      ))
+                    : (
+                      <>
+                        <option value="SIGHT">Sight</option>
+                        <option value="USANCE">Usance</option>
+                        <option value="DEFERRED">Deferred Payment</option>
+                        <option value="NEGOTIATION">Negotiation</option>
+                        <option value="MIXED">Mixed Payment</option>
+                      </>
+                    )
+                  }
                 </select>
               </div>
               <div className="field-group span-2">
@@ -162,6 +187,7 @@ export function Step3Page() {
           </div>
         </div>
 
+        {/* Settlement & Charges */}
         <div className="form-card">
           <div className="form-card-header">
             <h2 className="form-card-title">Settlement &amp; Charges</h2>
@@ -170,22 +196,49 @@ export function Step3Page() {
             <div className="grid-4">
               <div className="field-group span-2">
                 <label className="field-label required">Debit Account for Payment</label>
-                <input className="field-input" placeholder="Account number to debit for LC settlement"
-                  {...register('settlementCharges.debitAccountForPayment', { required: true })} />
+                <select
+                  className="field-input"
+                  {...register('settlementCharges.debitAccountForPayment', { required: true })}
+                >
+                  <option value="">Select account…</option>
+                  {accounts.map(acc => (
+                    <option key={acc.id} value={acc.account_number}>
+                      {acc.account_name} — {formatLimit(acc.currency, acc.available_limit)} available
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="field-group span-2">
                 <label className="field-label required">Bank Charges By</label>
                 <select className="field-input" {...register('settlementCharges.bankChargesBy')}>
-                  <option value="OUR">OUR — All charges by Applicant</option>
-                  <option value="SHA">SHA — Shared</option>
-                  <option value="BEN">BEN — All charges by Beneficiary</option>
-                  <option value="OTH">OTH — Other arrangement</option>
+                  {chargesOptions.length > 0
+                    ? chargesOptions.map(o => (
+                        <option key={o.value_code} value={o.value_code}>{o.display_name}</option>
+                      ))
+                    : (
+                      <>
+                        <option value="OUR">OUR — All charges by Applicant</option>
+                        <option value="SHA">SHA — Shared</option>
+                        <option value="BEN">BEN — All charges by Beneficiary</option>
+                        <option value="OTH">OTH — Other arrangement</option>
+                      </>
+                    )
+                  }
                 </select>
               </div>
               <div className="field-group span-2">
                 <label className="field-label">Charges Debit Account</label>
-                <input className="field-input" placeholder="If different from payment account"
-                  {...register('settlementCharges.chargesDebitAccount')} />
+                <select
+                  className="field-input"
+                  {...register('settlementCharges.chargesDebitAccount')}
+                >
+                  <option value="">Same as payment account</option>
+                  {accounts.map(acc => (
+                    <option key={acc.id} value={acc.account_number}>
+                      {acc.account_name} — {formatLimit(acc.currency, acc.available_limit)} available
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="field-group span-2">
                 <label className="field-label">Confirmation Charges By</label>
@@ -205,6 +258,7 @@ export function Step3Page() {
           </div>
         </div>
 
+        {/* Declarations */}
         <div className="form-card">
           <div className="form-card-header">
             <h2 className="form-card-title">Declarations &amp; Confirmations</h2>
