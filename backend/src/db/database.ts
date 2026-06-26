@@ -87,6 +87,12 @@ db.exec(`
   );
 `);
 
+// Migrate beneficiary_book: add address3 if missing (existing DBs predate this column)
+const benCols = db.pragma('table_info(beneficiary_book)') as { name: string }[];
+if (!benCols.some(c => c.name === 'address3')) {
+  db.exec(`ALTER TABLE beneficiary_book ADD COLUMN address3 TEXT`);
+}
+
 // Seed BIC directory
 const bicCount = db.prepare('SELECT COUNT(*) as c FROM bic_directory').get() as { c: number };
 if (bicCount.c === 0) {
